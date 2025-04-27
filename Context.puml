@@ -1,0 +1,19 @@
+@startuml
+set separator none
+title Internet Banking System - API Application - Components
+
+top to bottom direction
+
+!include <C4/C4_Container>
+
+title Контекстная диаграмма SmartHome System (C4 Level 1)
+
+Person(web_client, "Web Client", "Пользователь или UI-приложение")
+System(smarthome, "SmartHome System", "Приложение для управления датчиками")
+System_Ext(temp_api, "External Temperature API", "Сервис данных температуры")
+ContainerDb(postgres, "PostgreSQL", "База данных датчиков")
+
+Rel(web_client, smarthome, "Отправляет REST запросы", "HTTP/JSON")
+Rel(smarthome, postgres, "Чтение/запись данных", "SQL")
+Rel(smarthome, temp_api, "Запрашивает температуру", "HTTP/JSON")
+@enduml

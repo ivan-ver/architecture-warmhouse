@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  swagger-editor:
+    image: swaggerapi/swagger-editor
+    container_name: "swagger-editor-container"
+    ports:
+      - "8084:8080"
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: "swagger-ui-container"
+    ports:
+      - "8085:8080"
+    volumes:
+      - ./swagger.yml:/swagger.yml
+    environment:
+      SWAGGER_JSON: /swagger.yml

@@ -1,0 +1,33 @@
+@startuml C4_Component_Diagram
+set separator none
+title Worm House System - User Service - Components
+
+top to bottom direction
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!include <C4/C4_Component>
+!include DEVICONS/postgresql.puml
+
+
+Container_Ext(WormHouseSystem.ApiGateWay, "API gateway", $techn="Spring Cloud", $descr="Единая точка входа для приложения", $tags="", $link="")
+
+Container_Boundary("WormHouseSystem.UserService_boundary", "User Service", $tags="") {
+  Component(WormHouseSystem.UserService.UserCrudController, "User controller", $techn="Spring MVC Rest Controller", $descr="Контроллер для добавления, изменения, удаления, чтения данных о пльзователе", $tags="", $link="")
+  Component(WormHouseSystem.UserService.UserCrudComponent, "User component", $techn="Spring bean", $descr="Компонент для добавления, изменения, удаления, чтения данных о пльзователе", $tags="", $link="")
+  Component(WormHouseSystem.UserService.StreamComponent, "Stream Component", $techn="Kafka streams", $descr="Компонет для насышения сообщения данными о пользователе", $tags="", $link="")
+  Component(WormHouseSystem.UserService.DbRepository, "Repository", $techn="Spring Bean", $descr="Слой репозитория для непосредственной связи с БД", $tags="", $link="")
+}
+SystemQueue(Broker, "Kafka", $descr="Брокер сообщений", $tags="", $link="")
+ContainerDb(WormHouseSystem.UserService.Database, "", $techn="Postgres", $descr="База данных пользователей", $tags="", $link="", $sprite="postgresql")
+System(keyCloak, "KeyCloak", $descr="Система авторизации и аутонтификации пользователей", $tags="", $link="")
+
+
+Rel(WormHouseSystem.UserService.UserCrudController, WormHouseSystem.UserService.UserCrudComponent, "", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.UserService.UserCrudComponent, WormHouseSystem.UserService.DbRepository, "", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.ApiGateWay, WormHouseSystem.UserService.UserCrudController, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.UserService.StreamComponent, WormHouseSystem.UserService.DbRepository, "", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.UserService.DbRepository, WormHouseSystem.UserService.Database, "Запись и чтение данных", $techn="SQL", $tags="", $link="")
+Rel(Broker, WormHouseSystem.UserService.StreamComponent, "Не обогащенные данные", $techn="Kafka streams", $tags="", $link="")
+Rel(WormHouseSystem.UserService.StreamComponent, Broker, "Обогащенные данные", $techn="Kafka streams", $tags="", $link="")
+Rel(keyCloak, WormHouseSystem.UserService.Database, "", $techn="", $tags="", $link="")
+
+@enduml

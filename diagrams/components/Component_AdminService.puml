@@ -1,0 +1,38 @@
+@startuml C4_Component_Diagram
+set separator none
+title Worm House System - Admin Service - Components
+
+top to bottom direction
+
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!include <C4/C4_Component>
+!include DEVICONS/postgresql.puml
+
+Container_Ext(WormHouseSystem.ApiGateWay, "API gateway", $techn="Spring Cloud", $descr="Единая точка входа для приложения", $tags="", $link="")
+Container_Boundary("WormHouseSystem.AdminService_boundary", "Admin Service", $tags="") {
+  Component(WormHouseSystem.AdminService.CrudAdminController, "CRUD Admin controller", $techn="Spring MVC Rest Controller", $descr="Контроллер для добавления, изменения, удаления админов", $tags="", $link="")
+  Component(WormHouseSystem.AdminService.CrudAdminComponent, "CRUD Admin component", $techn="Spring bean", $descr="Компонент для добавления, изменения, удаления админов", $tags="", $link="")
+  Component(WormHouseSystem.AdminService.AdminController, "Admin controller", $techn="Spring MVC Rest Controller", $descr="Контроллер для функционала администратора", $tags="", $link="")
+  Component(WormHouseSystem.AdminService.AdminComponent, "Admin component", $techn="Spring bean", $descr="Компонент для функционала администратора", $tags="", $link="")
+  Component(WormHouseSystem.AdminService.KafkaProducer, "Kafka Producer", $techn="Spring bean, kafka producer", $descr="Компонент для публикации сообщения в топике Kafka", $tags="", $link="")
+  Component(WormHouseSystem.AdminService.DbRepository, "Repository", $techn="Spring Bean", $descr="Слой репозитория для непосредственной связи с БД", $tags="", $link="")
+}
+SystemQueue(Broker, "Kafka", $descr="Брокер сообщений", $tags="", $link="")
+ContainerDb(WormHouseSystem.AdminService.Database, "", $techn="Postgres", $descr="База данных администраторов", $tags="", $link="", $sprite="postgresql")
+System(keyCloak, "KeyCloak", $descr="Система авторизации и аутонтификации пользователей", $tags="", $link="")
+Container_Ext(WormHouseSystem.DeviceService, "Device service", $descr="Сервис устройств", $tags="", $link="")
+
+
+Rel(WormHouseSystem.ApiGateWay, WormHouseSystem.AdminService.CrudAdminController, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.ApiGateWay, WormHouseSystem.AdminService.AdminController, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.AdminService.CrudAdminController, WormHouseSystem.AdminService.CrudAdminComponent, "", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.AdminService.AdminController, WormHouseSystem.AdminService.AdminComponent, "", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.AdminService.CrudAdminComponent, WormHouseSystem.AdminService.DbRepository, "", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.AdminService.DbRepository, WormHouseSystem.AdminService.Database, "Чтение и запись", $techn="SQL", $tags="", $link="")
+Rel(WormHouseSystem.AdminService.AdminComponent, WormHouseSystem.AdminService.KafkaProducer, "", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.AdminService.KafkaProducer, Broker, "Публикация сообщений в топике kafka", $techn="kafka producer", $tags="", $link="")
+Rel(keyCloak, WormHouseSystem.AdminService.Database, "", $techn="SQL", $tags="", $link="")
+Rel(WormHouseSystem.AdminService.AdminComponent, WormHouseSystem.DeviceService, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+
+
+@enduml

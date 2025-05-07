@@ -1,0 +1,95 @@
+@startuml ER_Diagram_Online_Store
+
+entity "User" as user {
+  + id [PK]
+  --
+  * login
+  * first_name
+  * last_name
+  * middle_name
+  * password_hash
+}
+
+entity "Contact" as contact {
+  + id [PK]
+  # user_id [FK]
+  --
+  * phone_number
+  * email
+  * push_token
+}
+
+user ||--|| contact: ""
+
+entity "Accommodation" as accommodation {
+  + id [PK]
+  # user_id [FK]
+  --
+  * accommodation_type
+  * square
+  * room_number
+}
+
+user ||--{ accommodation: ""
+
+entity "Device" as device {
+  + id [PK]
+  # accommodation_id [FK]
+  --
+  * name
+  * type
+  * is_alive
+  * created_at
+  * last_check_at
+}
+
+
+accommodation ||--{ device: ""
+
+entity "DeviceTelemetry" as device_telemetry {
+  + id [PK]
+  # device_id [FK]
+  --
+  * name
+  * value
+  * unit
+  * date_time
+}
+
+device ||--o{ device_telemetry: ""
+
+entity "Action" as action {
+  + id [PK]
+  # device_id [FK]
+  --
+  * action
+}
+
+device ||-o{ action: ""
+
+entity "Admin" as admin {
+  + id [PK]
+  --
+  * login
+  * first_name
+  * last_name
+  * middle_name
+  * password_hash
+}
+
+entity "AdminRoleRelation" as admin_role_relation {
+  + id [PK]
+  # admin_id [FK]
+  # role_id [FK]
+}
+
+entity "Role" as role {
+  + id [PK]
+  --
+  * role
+}
+
+admin ||--{ admin_role_relation: ""
+admin_role_relation }--|| role: ""
+
+@enduml

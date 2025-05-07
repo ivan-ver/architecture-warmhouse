@@ -1,0 +1,74 @@
+@startuml C4_Container_Diagram
+title Warm House - Containers
+
+top to bottom direction
+
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!include <C4/C4_Container>
+!include DEVICONS/java.puml
+!include DEVICONS/postgresql.puml
+
+Person(user, "", $descr="User", $tags="", $link="")
+Person(admin, "", $descr="Admin", $tags="", $link="")
+
+Container(mobileApplication, "Mobile Application", $techn="Android IOS", $descr="Мобильное приложение", $tags="", $link="")
+Container(webApplication, "Web Application", $techn="JS, Angular, React, Node.js", $descr="WEB приложение", $tags="", $link="")
+
+System_Boundary("WormHouseSystem_boundary", "Worm House System", $tags="") {
+    Container(WormHouseSystem.ApiGateWay, "API gateway", $techn="Spring Cloud", $descr="Единая точка входа для приложения", $tags="", $link="", $sprite="java")
+    Container(WormHouseSystem.UserService, "User service", $techn="Spring boot", $descr="Сервис пользователей", $tags="", $link="", $sprite="java")
+    ContainerDb(WormHouseSystem.UserService.Database, "", $techn="Postgres", $descr="База данных пользователей", $tags="", $link="", $sprite="postgresql")
+    Container(WormHouseSystem.AdminService, "Admin service", $techn="Spring boot", $descr="Сервис администратора", $tags="", $link="", $sprite="java")
+    ContainerDb(WormHouseSystem.AdminService.Database, "Admin Service Database", $techn="Postgres", $descr="БД хранения данных администраторов", $tags="", $link="", $sprite="postgresql")
+    Container(WormHouseSystem.DeviceService, "Device service", $techn="Spring boot", $descr="Сервис устройств", $tags="", $link="", $sprite="java")
+    ContainerDb(WormHouseSystem.DeviceService.Database, "", $techn="Postgres", $descr="База данных устройств", $tags="", $link="", $sprite="postgresql")
+    Container(WormHouseSystem.AsyncDevicesService, "Async devices service", $techn="Spring boot, web-socket", $descr="Сервис асинхронных устройств", $tags="", $link="", $sprite="java")
+    Container(WormHouseSystem.SyncDevicesService, "Sync devices service", $techn="Spring boot", $descr="Сервис синхронных устройств", $tags="", $link="", $sprite="java")
+    Container(WormHouseSystem.ControlService, "Control service", $techn="Spring boot", $descr="Сервис устройств управления", $tags="", $link="", $sprite="java")
+    Container(WormHouseSystem.TimeSeriesService, "Time series service", $techn="Spring boot", $descr="Сервис управления временными рядами", $tags="", $link="", $sprite="java")
+    Container(WormHouseSystem.NotificationService, "Notification service", $techn="Spring boot", $descr="Сервис рассылки сообщений", $tags="", $link="", $sprite="java")
+    ContainerDb(WormHouseSystem.TimeSeriesService.Database, "Time series service database", $techn="click house", $descr="БД хранения показаний асинхронных датчиков", $tags="", $link="")
+    System(keyCloak, "KeyCloak", $descr="Система авторизации и аутонтификации пользователей", $tags="", $link="")
+    SystemQueue_Ext(Broker, "Kafka", $descr="Брокер сообщений", $tags="", $link="")
+}
+
+System_Ext(smsNotificationSystem, "SMS notification system", $descr="Сервис рассылки СМС сообщений", $tags="", $link="")
+System_Ext(pushNotificationSystem, "PUSH notification system", $descr="Сервисы рассылки PUSH-уведомлений (FireBase, AppleSDK)", $tags="", $link="")
+System_Ext(emailNotificationSystem, "E-mail system", $descr="Сервис рассылки E-mail", $tags="", $link="")
+System_Ext(asyncDevices, "Async devices", $descr="Устройства с асинхронным взаимодействием", $tags="", $link="")
+System_Ext(syncDevices, "Sync devices", $descr="Устройства с синхронным взаимодействием", $tags="", $link="")
+System_Ext(controlSystem, "Control system", $descr="Устройства управления", $tags="", $link="")
+
+Rel(admin, webApplication, "", $techn="", $tags="", $link="")
+Rel(keyCloak, webApplication, "Получение JWT-токена", $techn="", $tags="", $link="")
+Rel(keyCloak, mobileApplication, "Получение JWT-токена", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.ApiGateWay, WormHouseSystem.AdminService, "REST-запрос", $techn="", $tags="HTTPS/JSON", $link="")
+Rel(WormHouseSystem.AdminService, WormHouseSystem.AdminService.Database, "", $techn="", $tags="HTTPS/JSON", $link="")
+Rel(WormHouseSystem.AdminService, keyCloak, "", $techn="", $tags="HTTPS/JSON", $link="")
+Rel(user, webApplication, "", $techn="Управление, просмотр", $tags="", $link="")
+Rel(user, mobileApplication, "", $techn="Управление, просмотр", $tags="", $link="")
+Rel(mobileApplication, WormHouseSystem.ApiGateWay, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(webApplication, WormHouseSystem.ApiGateWay, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.UserService, WormHouseSystem.UserService.Database, "", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.UserService, keyCloak, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.ApiGateWay, WormHouseSystem.UserService, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.ApiGateWay, keyCloak, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.ApiGateWay, WormHouseSystem.DeviceService, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService, WormHouseSystem.DeviceService.Database, "", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.AsyncDevicesService, Broker, "", $techn="kafka producer", $tags="", $link="")
+Rel(asyncDevices, WormHouseSystem.AsyncDevicesService, "", $techn="web-socket", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService, WormHouseSystem.TimeSeriesService, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService, WormHouseSystem.SyncDevicesService, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService, WormHouseSystem.ControlService, "", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.SyncDevicesService, syncDevices, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.ControlService, controlSystem, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.TimeSeriesService, WormHouseSystem.TimeSeriesService.Database, "", $techn="", $tags="", $link="")
+Rel(Broker, WormHouseSystem.TimeSeriesService, "", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.NotificationService, smsNotificationSystem, "REST-запрос", $techn="HTTPS/JSON, SMPP", $tags="", $link="")
+Rel(WormHouseSystem.NotificationService, pushNotificationSystem, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.NotificationService, emailNotificationSystem, "REST-запрос", $techn="HTTPS/JSON, SMTP, IMAP", $tags="", $link="")
+Rel(Broker, WormHouseSystem.NotificationService, "REST-запрос", $techn="HTTPS/JSON, SMTP, IMAP", $tags="", $link="")
+
+Rel(WormHouseSystem.AdminService, Broker, "", $techn="kafka producer", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService, Broker, "", $techn="kafka producer", $tags="", $link="")
+@enduml

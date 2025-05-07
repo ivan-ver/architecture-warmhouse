@@ -1,0 +1,20 @@
+@startuml C4_Context_Diagram
+set separator none
+title Warm House - Containers
+
+top to bottom direction
+
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!include <C4/C4_Container>
+!include DEVICONS/java.puml
+!include DEVICONS/postgresql.puml
+
+Person(web_client, "Web Client", "Пользователь или UI-приложение")
+System(smarthome, "SmartHome System", "Приложение для управления датчиками")
+System_Ext(DeviceApi, "External Temperature API", "Сервис данных температуры")
+ContainerDb(postgres, "PostgreSQL", "База данных датчиков", $sprite="postgresql")
+
+Rel(web_client, smarthome, "Отправляет REST запросы", "HTTP/JSON")
+Rel(smarthome, postgres, "Чтение/запись данных", "SQL")
+Rel(smarthome, DeviceApi, "Запрашивает температуру", "HTTP/JSON")
+@enduml

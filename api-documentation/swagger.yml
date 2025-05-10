@@ -1,0 +1,484 @@
+openapi: 3.0.0
+info:
+  title: Device Management API
+  description: API для управления устройствами (датчиками)
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+
+tags:
+  - name: device
+    description: Операции с устройствами
+  - name: telemetry
+    description: Получение данных с устройств
+
+paths:
+  /device:
+    post:
+      tags: [device]
+      summary: Создать новое устройство
+      operationId: createDevice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceCreateDto'
+      responses:
+        201:
+          description: Устройство создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceDto'
+        400:
+          description: Неверный формат запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        422:
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Ошибки сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /device/{id}:
+    get:
+      tags: [device]
+      summary: Получить устройство по ID
+      operationId: getDeviceById
+      parameters:
+        - name: id
+          in: path
+          description: Уникальный идентификатор устройства
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: Успешный запрос
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceDto'
+        400:
+          description: Неверный формат запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Устройство по ID не найдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Ошибки сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      tags: [device]
+      summary: Обновить устройство
+      operationId: updateDevice
+      parameters:
+        - name: id
+          in: path
+          description: Уникальный идентификатор устройства
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeviceCreateDto'
+      responses:
+        200:
+          description: Устройство обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceDto'
+        400:
+          description: Неверный формат запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Устройство по ID не найдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        422:
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Ошибки сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      tags: [device]
+      summary: Удалить устройство
+      operationId: deleteDevice
+      parameters:
+        - name: id
+          in: path
+          description: Уникальный идентификатор устройства
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        204:
+          description: Устройство удалено
+        400:
+          description: Неверный формат запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Устройство по ID не найдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Ошибки сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /device/id-list:
+    get:
+      tags: [device]
+      summary: Получить устройства по списку ID
+      operationId: getDevicesByIds
+      parameters:
+        - name: ids
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: integer
+          style: form
+          explode: false
+      responses:
+        200:
+          description: Список устройств
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceDto'
+
+  /device/{id}/accommodation:
+    get:
+      tags: [device]
+      summary: Получить устройства по ID жилья
+      operationId: getDevicesByAccommodation
+      parameters:
+        - name: id
+          in: path
+          description: Уникальный идентификатор дома/квартиры
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: Список устройств
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceDto'
+        400:
+          description: Неверный формат запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Ошибки сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /device/action/{value}:
+    put:
+      tags: [device]
+      summary: Выполнить действие с устройством (если устр-во позволяет)
+      operationId: makeAnAction
+      parameters:
+        - name: value
+          in: path
+          description: Значение действия
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: Действие успешно выполнено
+        400:
+          description: Неверный формат запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Действие не найдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /telemetry/{id}/device:
+    get:
+      tags: [telemetry]
+      summary: Получение данных с датчика по его ID
+      operationId: getTelemetryById
+      parameters:
+        - name: id
+          in: path
+          description: ID датчика
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        200:
+          description: Устройство обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceTelemetryDto'
+        400:
+          description: Неверный формат запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Устройство по ID не найдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        422:
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Ошибки сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /telemetry/history/{id}/device:
+    get:
+      tags: [telemetry]
+      summary: Получение данных с датчика по его ID в диапазоне дат
+      operationId: getHistoryTelemetryById
+      parameters:
+        - name: id
+          in: path
+          description: ID датчика
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: start
+          in: query
+          description: Начальная дата
+          required: true
+          schema:
+            type: string
+        - name: finish
+          in: query
+          description: Конечная дата дата
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Список параметров телеметрии датчика
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceTelemetryDto'
+        400:
+          description: Неверный формат запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        404:
+          description: Устройство по ID не найдено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        422:
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        500:
+          description: Ошибки сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    DeviceDto:
+      type: object
+      required: [id, type]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        type:
+          type: string
+          enum: [TEMPERATURE, HUMIDITY, LIGHTING]
+        accommodationId:
+          type: integer
+          format: int64
+        isAlive:
+          type: boolean
+        actionList:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionDto'
+
+    DeviceCreateDto:
+      type: object
+      required: [type]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [TEMPERATURE, HUMIDITY, LIGHTING]
+        accommodationId:
+          type: integer
+          format: int64
+        actionList:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionCreateDto'
+
+    ActionDto:
+      type: object
+      required: [id, action]
+      properties:
+        id:
+          type: integer
+          format: int64
+        action:
+          type: string
+
+    ActionCreateDto:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+
+    DeviceTelemetryDto:
+      type: object
+      required: [telemetry]
+      properties:
+        id:
+          type: integer
+          format: int64
+        deviceId:
+          type: integer
+          format: int64
+        name:
+          type: string
+        value:
+          type: number
+        unit:
+          type: string
+        dateTime:
+          type: string
+
+
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+
+  parameters:
+    DeviceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+
+  responses:
+    BadRequest:
+      description: Неверный запрос
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Ресурс не найден
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ValidationError:
+      description: Ошибка валидации
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

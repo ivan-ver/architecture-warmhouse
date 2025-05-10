@@ -1,0 +1,39 @@
+@startuml C4_Component_Diagram
+set separator none
+title Worm House System - Notification Service - Components
+
+top to bottom direction
+
+!include <C4/C4_Component>
+
+SystemQueue(Broker, "Kafka", $descr="Брокер сообщений", $tags="", $link="")
+Container_Ext(WormHouseSystem.DeviceService, "Device Service", $descr="Сервис устройств", $tags="", $link="")
+Container_Ext(WormHouseSystem.AdminService, "Admin service", $descr="Сервис администратора", $tags="", $link="")
+Container_Ext(WormHouseSystem.UserService, "User service", $descr="Сервис хранит (в БД) данные о пользователях", $tags="", $link="")
+
+
+Container_Boundary("WormHouseSystem.NotificationService_boundary", "Notification service", $tags="") {
+  Component(WormHouseSystem.NotificationService.BrokerController, "Broker controller", $techn="Spring Bean", $descr="Контроллер для получения сообщений из брокера", $tags="", $link="")
+  Component(WormHouseSystem.NotificationService.NotificationComponent, "Notification component", $techn="Spring bean", $descr="Компонент из слоя сервиса для реализации бизнес-логики отправки сообщений", $tags="", $link="")
+}
+
+System_Ext(smsNotificationSystem, "SMS notification system", $descr="Сервис рассылки СМС сообщений", $tags="", $link="")
+System_Ext(pushNotificationSystem, "PUSH notification system", $descr="Сервисы рассылки PUSH уведомлений (FireBase, AppleSDK)", $tags="", $link="")
+System_Ext(emailNotificationSystem, "E-mail system", $descr="Сервис рассылки E-mail", $tags="", $link="")
+
+System_Ext(mobileApplication, "Mobile Application", $descr="Мобильное приложение", $tags="", $link="")
+
+Rel(WormHouseSystem.DeviceService, Broker, "Публикация сообщений в топике", $techn="kafka-producer", $tags="", $link="")
+Rel(WormHouseSystem.AdminService, Broker, "Публикация сообщений в топике", $techn="kafka-producer", $tags="", $link="")
+Rel(smsNotificationSystem, mobileApplication, "", $techn="", $tags="", $link="")
+Rel(pushNotificationSystem, mobileApplication, "", $techn="", $tags="", $link="")
+Rel(emailNotificationSystem, mobileApplication, "", $techn="", $tags="", $link="")
+Rel(Broker, WormHouseSystem.NotificationService.BrokerController, "Считывание сообщений из топика", $techn="kafka-consumer", $tags="", $link="")
+Rel(WormHouseSystem.NotificationService.BrokerController, WormHouseSystem.NotificationService.NotificationComponent, "", $techn="", $tags="", $link="")
+Rel(Broker, WormHouseSystem.UserService, "Отправка сообщения для наполнения данными о пользователях", $techn="kafka-streams", $tags="", $link="")
+Rel(WormHouseSystem.UserService, Broker, "Обогащенное данными о пользователе (email, телефон, push-токен) сообщение", $techn="kafka-streams", $tags="", $link="")
+Rel(WormHouseSystem.NotificationService.NotificationComponent, smsNotificationSystem, "Запрос на отправку сообщения", $techn="HTTPS/JSON, SMPP", $tags="", $link="")
+Rel(WormHouseSystem.NotificationService.NotificationComponent, pushNotificationSystem, "Запрос на отправку сообщения", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.NotificationService.NotificationComponent, emailNotificationSystem, "Запрос на отправку сообщения", $techn="HTTPS/JSON, SMTP, IMAP", $tags="", $link="")
+
+@enduml

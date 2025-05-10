@@ -1,0 +1,161 @@
+@startuml C4_Code_Diagram
+
+class Device {
+  +id: Long
+  +name: String
+  +type: String
+  +accommodationId: Long
+}
+
+class Action {
+  +id: Long
+  +deviceId: Long
+  +action: String
+}
+
+class DeviceDto {
+  +id: Long
+  +name: String
+  +type: String
+  +isAlive: Boolean
+  +accommodationId: Long
+  +actionList: List<ActionDto>
+}
+
+class DeviceCreateDto {
+  +name: String
+  +type: String
+  +accommodationId: Long
+}
+
+class ActionDto {
+  +id: Long
+  +action: String
+}
+
+DeviceDto ..> ActionDto: "Использует"
+
+class DeviceController {
+  -service: DeviceService
+  +getDeviceById(id: Long): DeviceDto
+  +getDevicesByIdList(idList: List<Long>): List<DeviceDto>
+  +getDevicesByAccommodationId(accommodationId: Long): List<DeviceDto>
+  +createDevice(deviceDto: DeviceDto): DeviceDto
+  +updateDevice(deviceDto: DeviceDto): DeviceDto
+  +deleteDevice(id: Long): void
+}
+
+DeviceController ..> DeviceDto: "Возвращает"
+DeviceController ..> DeviceCreateDto: "Принимает"
+DeviceController --> DeviceService: "Вызывет"
+
+class DeviceService {
+  -deviceRepository: DeviceRepository
+  -actionRepository: actionRepository
+  -deviceMapper: DeviceMapper
+  -actionMapper: ActionMapper
+  +getDeviceById(id: Long): Device
+  +getDevicesByIdList(idList: List<Long>): List<Device>
+  +getDevicesByAccommodationId(accommodationId: Long): List<Device>
+  +createDevice(device: Device): Device
+  +updateDevice(device: Device): Device
+  +deleteDevice(id: Long): void
+  -getActionList(id: Long): List<Action>
+  -saveActionList(actionList: List<Action>): List<Action>
+}
+
+interface DeviceMapper {
+  +toDto(device: Device): DeviceDto
+  +toEntity(deviceDto: DeviceDto): Device
+}
+
+interface ActionMapper {
+  +toDto(action: Action): ActionDto
+  +toEntity(actionDto: ActionDto): Action
+}
+
+DeviceService --> DeviceRepository: "Использует"
+DeviceService --> ActionRepository: "Использует"
+DeviceService --> DeviceMapper: "Использует"
+DeviceService --> ActionMapper: "Использует"
+DeviceRepository ..> Device: "Работает с"
+
+interface DeviceRepository {
+  +findById(id: Long): Optional<Device>
+  +findAllByIdIn(idList: List<Long>): List<Device>
+  +findByAccommodationId(accommodationId: Long): List<Device>
+  +save(device: Device): Device
+  +deleteById(id: Long): void
+}
+
+interface ActionRepository {
+  +findById(id: Long): Optional<Action>
+  +findByActionIgnoreCase(action: String): Optional<Action>
+  +findByDeviceId(id: Long): List<Action>
+  +save(action: Action): Action
+  +deleteById(id: Long): void
+}
+
+ActionRepository ..> Action: "Работает с"
+
+class DeviceTelemetryDto {
+  +deviceId: Long
+  +name: String
+  +value: Long
+  +unit: String
+  +dateTime: LocalDateTime
+}
+
+SyncDeviceDataController ..> DeviceTelemetryDto: "Работает с"
+
+class SyncDeviceDataController {
+  -service: SyncDeviceDataService
+  +getDataByDeviceId(deviceId: Long): DeviceTelemetryDto
+}
+
+SyncDeviceDataController --> SyncDeviceDataService: "Использует"
+
+class SyncDeviceDataService {
+  -service: DeviceService
+  -restTemplate: RestTemplate<DeviceTelemetryDto>
+  +getDeviceData(accommodationId: Long): DeviceTelemetryDto
+  -getDevice(deviceId: Long): Device
+}
+
+SyncDeviceDataService --> DeviceService: "Вызывает"
+AsyncDeviceDataController ..> DeviceTelemetryDto: "Работает с"
+
+class AsyncDeviceDataController {
+  -service: AsyncDeviceDataController
+  +publishDataByDeviceId(deviceId: Long): DeviceTelemetryDto
+}
+
+AsyncDeviceDataController --> AsyncDeviceDataService: "Использует"
+
+class AsyncDeviceDataService {
+  -service: DeviceService
+  -restTemplate: RestTemplate<DeviceTelemetryDto>
+  +getDeviceData(accommodationId: Long): DeviceTelemetryDto
+  -getDevice(deviceId: Long): Device
+}
+
+AsyncDeviceDataService --> DeviceService: "Вызывает"
+
+class ControlDeviceController {
+  -service: ControlDeviceService
+  +makeAction(action: String): void
+}
+
+ControlDeviceController --> ControlDeviceService: "Вызывает"
+ControlDeviceController ..> ActionDto: "Принимает"
+
+class ControlDeviceService {
+  -actionRepository: ActionRepository
+  -restTemplate: RestTemplate<ActionDto>
+  +makeAction(action: ActionDto): void
+  -getActionById(id: Long): Action
+}
+
+ControlDeviceService --> ActionRepository: "Использует"
+
+@enduml

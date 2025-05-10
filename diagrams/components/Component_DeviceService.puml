@@ -1,0 +1,50 @@
+@startuml C4_Component_Diagram
+set separator none
+title Worm House System - Device Service - Components
+
+top to bottom direction
+
+!define DEVICONS https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+!include <C4/C4_Component>
+!include DEVICONS/postgresql.puml
+
+Container_Ext(WormHouseSystem.ApiGateWay, "Api gateway", $descr="Единая точка входа", $tags="", $link="")
+Container_Ext(WormHouseSystem.UserService, "User service", $descr="Сервис хранит (в БД) данные о пользователях", $tags="", $link="")
+Container_Ext(WormHouseSystem.TimeSeriesService, "Time series service", $descr="Микросервис хранит (в БД ClickHouse) данные, присланные асинхронными устройствами", $tags="", $link="")
+Container_Ext(WormHouseSystem.SyncDevicesService, "Sync devices service", $descr="Микросервис получает данные от синхронных устройств", $tags="", $link="")
+Container_Ext(WormHouseSystem.ControlService, "Control service", $descr="Микросервис управления устройствами", $tags="", $link="")
+
+Container_Boundary("WormHouseSystem.DeviceService_boundary", "Device service", $tags="") {
+  Component(WormHouseSystem.DeviceService.RegisterDeviceController, "Register device controller", $techn="Spring MVC Rest Controller", $descr="Контроллер предназначен для регистрации устройств, редактирования информации о них или удаления", $tags="", $link="")
+  Component(WormHouseSystem.DeviceService.SyncDevicesDataController, "Sync devices data controller", $techn="Spring MVC Rest Controller", $descr="Контроллер предназначен для получения данных от синхронных устройств", $tags="", $link="")
+  Component(WormHouseSystem.DeviceService.AsyncDevicesDataController, "Async devices data controller", $techn="Spring MVC Rest Controller", $descr="Контроллер предназначен для получения данных от асинхронных устройств", $tags="", $link="")
+  Component(WormHouseSystem.DeviceService.ControlDevicesDataController, "Control devices data controller", $techn="Spring MVC Rest Controller", $descr="Контроллер предназначен для управления устройствами", $tags="", $link="")
+  Component(WormHouseSystem.DeviceService.RegisterDeviceComponent, "Register device component", $techn="Spring Bean", $descr="Компонент из слоя сервиса, предназначенный для бизнес-логики работы с утройствами", $tags="", $link="")
+  Component(WormHouseSystem.DeviceService.SyncDevicesDataComponent, "Sync devices data component", $techn="Spring Bean", $descr="Компонент из слоя сервиса, для получения данных от синхронных устройств", $tags="", $link="")
+  Component(WormHouseSystem.DeviceService.AsyncDevicesDataComponent, "Async devices data component", $techn="Spring Bean", $descr="Компонент из слоя сервиса, для получения данных от асинхронных устройств", $tags="", $link="")
+  Component(WormHouseSystem.DeviceService.ControlDevicesDataComponent, "Control devices data component", $techn="Spring Bean", $descr="Компонент из слоя сервиса, для управления устройствами", $tags="", $link="")
+  Component(WormHouseSystem.DeviceService.DbRepository, "Repository", $techn="Spring Bean", $descr="Слой репозитория для непосредственной связи с БД", $tags="", $link="")
+}
+
+ContainerDb(WormHouseSystem.DeviceService.Database, "Database", $techn="Postgres", $descr="Содержит все зарегистрированные устройства. Записи связаны с записями из сервиса пользователей (UserService)", $tags="", $link="", $sprite="postgresql")
+
+Rel(WormHouseSystem.ApiGateWay, WormHouseSystem.DeviceService.SyncDevicesDataController, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.ApiGateWay, WormHouseSystem.DeviceService.RegisterDeviceController, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.ApiGateWay, WormHouseSystem.DeviceService.AsyncDevicesDataController, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.ApiGateWay, WormHouseSystem.DeviceService.ControlDevicesDataController, "REST-запрос", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService.RegisterDeviceController, WormHouseSystem.DeviceService.RegisterDeviceComponent, "", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService.SyncDevicesDataController, WormHouseSystem.DeviceService.SyncDevicesDataComponent, "", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService.AsyncDevicesDataController, WormHouseSystem.DeviceService.AsyncDevicesDataComponent, "", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService.ControlDevicesDataController, WormHouseSystem.DeviceService.ControlDevicesDataComponent, "", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService.AsyncDevicesDataComponent, WormHouseSystem.DeviceService.DbRepository, "Чтение данных", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService.SyncDevicesDataComponent, WormHouseSystem.DeviceService.DbRepository, "Чтение данных", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService.RegisterDeviceComponent, WormHouseSystem.DeviceService.DbRepository, "Запись и чтение данных", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService.ControlDevicesDataComponent, WormHouseSystem.DeviceService.DbRepository, "Запись и чтение данных", $techn="", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService.DbRepository, WormHouseSystem.DeviceService.Database, "Запись и чтение данных", $techn="SQL", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService.AsyncDevicesDataComponent, WormHouseSystem.TimeSeriesService, "REST-запрос по ID устройства", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService.SyncDevicesDataComponent, WormHouseSystem.SyncDevicesService, "REST-запрос по ID устройства", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService.ControlDevicesDataComponent, WormHouseSystem.ControlService, "REST-запрос по ID устройства", $techn="HTTPS/JSON", $tags="", $link="")
+Rel(WormHouseSystem.DeviceService.RegisterDeviceComponent, WormHouseSystem.UserService, "REST-запрос по ID пользователя для проверки и получения данных", $techn="HTTPS/JSON", $tags="", $link="")
+
+
+@enduml
